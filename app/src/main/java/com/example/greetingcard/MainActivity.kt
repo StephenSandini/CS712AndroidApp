@@ -1,45 +1,94 @@
 package com.example.greetingcard
 
 import android.content.Intent
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+//region Foundation
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+//endregion Foundation
+//region Material Icons
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Send
+//endregion Material Icons
+//region Material 3
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+//endregion Material 3
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+//region UI
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.greetingcard.ui.theme.GreetingCardTheme
+//endregion UI
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import com.example.greetingcard.ui.theme.GreetingCardTheme
+
 
 class MainActivity : ComponentActivity() {
+    private lateinit var myReceiver: MyBroadcastReceiver
+    companion object {
+        const val MY_CUSTOM_ACTION = "com.example.MY_CUSTOM_ACTION"
+    }
+    @SuppressLint("UnspecifiedRegisterReceiverFlag", "UnsafeImplicitIntentLaunch")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        myReceiver = MyBroadcastReceiver()
+        val filter = IntentFilter(MY_CUSTOM_ACTION)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(myReceiver, filter, RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION")
+            registerReceiver(myReceiver, filter)
+        }
         enableEdgeToEdge()
         setContent {
+
+            val notificationPermissionLauncher =
+                rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestPermission()){}
+            LaunchedEffect(Unit) {
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    notificationPermissionLauncher.launch(
+                        Manifest.permission.POST_NOTIFICATIONS
+                    )
+                }
+            }
+
             GreetingCardTheme {
                 Surface(
                     color = MaterialTheme.colorScheme.background,
@@ -57,11 +106,22 @@ class MainActivity : ComponentActivity() {
                                 data = "app://challenges".toUri()
                             }
                             startActivity(intent)
+                        },
+                         onSendBroadcast = {
+                             val intent = Intent(MY_CUSTOM_ACTION).apply {
+                                 setPackage(packageName)
+                             }
+                            sendBroadcast(intent)
                         }
                     )
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(myReceiver)
     }
 }
 
@@ -93,6 +153,7 @@ fun GreetingPreview() {
             "ID: 1234567",
             onStartExplicit = {},
             onStartImplicit = {},
+            onSendBroadcast = {},
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -104,12 +165,14 @@ fun MainActivityScreen(
     id: String,
     onStartExplicit: () -> Unit,
     onStartImplicit: () -> Unit,
+    onSendBroadcast: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val image = painterResource(R.drawable.businesscardpic)
+    val context = LocalContext.current
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
@@ -117,7 +180,9 @@ fun MainActivityScreen(
         Image(
             painter = image,
             contentDescription = "Background Image",
-            modifier = Modifier.fillMaxWidth().height(190.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(190.dp),
             contentScale = ContentScale.Crop,
         )
         MainText(
@@ -128,32 +193,82 @@ fun MainActivityScreen(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = onStartExplicit,
-            modifier = modifier.fillMaxWidth()
-        ) {
-            Text("Start Activity Explicitly")
-            Spacer(modifier = Modifier.width(8.dp))
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.List,
-                contentDescription = "Implicit Intent",
-            )
+        //region Second Assignment
+        Row {
+            Button(
+                onClick = onStartExplicit,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Start Activity Explicitly",
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill=true)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.List,
+                    contentDescription = "Implicit Intent",
+                    tint = Color.White
+                )
+            }
+            Button(
+                onClick = onStartImplicit,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Start Activity Implicitly",
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill=true)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "Implicit Intent",
+                    tint = Color.White
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = onStartImplicit,
-            modifier = modifier.fillMaxWidth()
-        ) {
-            Text("Start Activity Implicitly")
-            Spacer(modifier = Modifier.width(8.dp))
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "Implicit Intent",
-            )
+        //endregion Second Assignment
+        //region Third Assignment
+        Row {
+            Button(
+                onClick = {
+                    val intent = Intent(context, ForegroundService::class.java)
+                    ContextCompat.startForegroundService(context, intent)
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Start Service",
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill=true)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                    contentDescription = "Start Service",
+                    tint = Color.White
+                )
+            }
+            Button(
+                onClick = onSendBroadcast,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Send Broadcast",
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill=true)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = "Send Broadcast",
+                    tint = Color.White
+                )
+            }
         }
+        //endregion Third Assignment
+
     }
 
 }
