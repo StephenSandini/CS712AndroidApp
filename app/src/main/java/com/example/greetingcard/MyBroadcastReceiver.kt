@@ -7,6 +7,6 @@ import android.widget.Toast
 
 class MyBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Toast.makeText(context, "Broadcast Received", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Broadcast received!", Toast.LENGTH_SHORT).show()
     }
 }
