@@ -16,6 +16,7 @@
         android:theme="@style/Theme.GreetingCard">
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="userPortrait"
             android:exported="true"
             android:theme="@style/Theme.GreetingCard">
             <intent-filter>
