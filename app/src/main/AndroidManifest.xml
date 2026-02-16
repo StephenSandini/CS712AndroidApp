@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<manifest xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <permission
+        android:name="com.example.greetingcard.MSE712"
+        android:label="MSE712 Permission"
+        android:protectionLevel="dangerous"/>
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"
+        tools:ignore="ForegroundServicesPolicy" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="com.example.greetingcard.MSE712" />
 
     <application
         android:allowBackup="true"
@@ -25,7 +33,8 @@
         </activity>
         <activity
             android:name=".SecondActivity"
-            android:exported="true">
+            android:exported="true"
+            android:permission="com.example.greetingcard.MSE712">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
