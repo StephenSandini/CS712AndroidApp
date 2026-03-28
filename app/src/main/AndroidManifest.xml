@@ -34,6 +34,9 @@
                     android:scheme="app" />
             </intent-filter>
         </activity>
+        <activity android:name=".ThirdActivity"
+            android:exported="true">
+        </activity>
         <service
             android:name=".ForegroundService"
             android:exported="false"

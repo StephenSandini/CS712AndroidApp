@@ -29,6 +29,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Face
 //endregion Material Icons
 //region Material 3
 import androidx.compose.material3.Button
@@ -112,7 +113,11 @@ class MainActivity : ComponentActivity() {
                                  setPackage(packageName)
                              }
                             sendBroadcast(intent)
-                        }
+                        },
+                        onStartThirdActivity = {
+                            val intent = Intent(this, ThirdActivity::class.java)
+                            startActivity(intent)
+                        },
                     )
                 }
             }
@@ -154,6 +159,7 @@ fun GreetingPreview() {
             onStartExplicit = {},
             onStartImplicit = {},
             onSendBroadcast = {},
+            onStartThirdActivity = {},
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -166,6 +172,7 @@ fun MainActivityScreen(
     onStartExplicit: () -> Unit,
     onStartImplicit: () -> Unit,
     onSendBroadcast: () -> Unit,
+    onStartThirdActivity: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val image = painterResource(R.drawable.businesscardpic)
@@ -268,6 +275,27 @@ fun MainActivityScreen(
             }
         }
         //endregion Third Assignment
+        //region Fifth Assignment
+        Row {
+            Button(
+                onClick = onStartThirdActivity,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("View Image Activity",
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill=true)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.Face,
+                    contentDescription = "Image Activity",
+                    tint = Color.White
+                )
+            }
+        }
+        //endregion Fifth Assignment
+
 
     }
 
