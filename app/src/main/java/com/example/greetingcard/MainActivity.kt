@@ -4,6 +4,7 @@ import android.content.Intent
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -66,6 +67,13 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnspecifiedRegisterReceiverFlag", "UnsafeImplicitIntentLaunch")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if(checkSelfPermission("com.example.greetingcard.MSE712")
+            != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(
+                arrayOf("com.example.greetingcardMSE712"),
+                19
+            )
+        }
 
         myReceiver = MyBroadcastReceiver()
         val filter = IntentFilter(MY_CUSTOM_ACTION)
@@ -99,8 +107,7 @@ class MainActivity : ComponentActivity() {
                         name = stringResource(R.string.name_text),
                         id = stringResource(R.string.id_text),
                         onStartExplicit = {
-                            val intent = Intent(this, SecondActivity::class.java)
-                            startActivity(intent)
+                            startSecondActivityWithPermission()
                         },
                         onStartImplicit = {
                             val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -127,6 +134,44 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(myReceiver)
+    }
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated in Java")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == 19 ) {
+
+            val granted = grantResults.isNotEmpty() &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED
+
+            android.widget.Toast.makeText(
+                this,
+                if(granted) "MSE712 permission granted" else "MSE712 permission denied",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+
+            if(granted) {
+                startSecondActivityWithPermission()
+            }
+        }
+    }
+    private fun startSecondActivityWithPermission(){
+
+        val intent = Intent(this, SecondActivity::class.java)
+        if (checkSelfPermission("com.example.greetingcard.MSE712")
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            startActivity(intent)
+        } else {
+            requestPermissions(
+                arrayOf("com.example.greetingcard.MSE712")
+                , 19)
+        }
     }
 }
 
@@ -298,5 +343,4 @@ fun MainActivityScreen(
 
 
     }
-
 }
